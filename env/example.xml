@@ -1,0 +1,10 @@
+<step name="NotTheFuture" url="https://notthefuture.com" description="Start of NotTheFuture" username="" password="">
+    <step name="entering building" url="https://notthefuture.com/2/" description="Entering building" username="" password="">
+        <step name="Computer" url="https://notthefuture.com/3" description="needs username and password" username="" password="">
+            <step name="Mason path" url="https://notthefuture.com/mason/munnich" description="for simulations" username="" password="">
+            </step>
+            <step name="Alice path" url="https://notthefuture.com/alice/boruff" description="for simulations" username="" password="">
+            </step>
+        </step>
+    </step>
+</step>
