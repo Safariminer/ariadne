@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="ariadne/ariadne.vcxproj" />
+  <Project Path="ariadne/ariadne.vcxproj" Id="125651f6-35ed-442d-b863-cb21889fa311" />
 </Solution>

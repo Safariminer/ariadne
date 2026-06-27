@@ -24,5 +24,26 @@
     <ClCompile Include="..\deps\include\pugixml.cpp">
       <Filter>Ext.</Filter>
     </ClCompile>
+    <ClCompile Include="..\deps\include\rlImGui.cpp">
+      <Filter>Ext.</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\include\imgui.cpp">
+      <Filter>Ext.</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\include\imgui_demo.cpp">
+      <Filter>Ext.</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\include\imgui_draw.cpp">
+      <Filter>Ext.</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\include\imgui_tables.cpp">
+      <Filter>Ext.</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\include\imgui_widgets.cpp">
+      <Filter>Ext.</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\include\misc\cpp\imgui_stdlib.cpp">
+      <Filter>Ext.</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

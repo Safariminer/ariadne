@@ -13,8 +13,10 @@
 
 // libraries
 #include <raylib.h>
+#include <rlImGui.h>
+#include <imgui.h>
 #include <pugixml.hpp>
-
+#include <misc/cpp/imgui_stdlib.h>
 
 struct Step {
 	std::string name;
@@ -40,6 +42,7 @@ Step parseStep(pugi::xml_node step) {
 		thisStep.children.push_back(parseStep(s));
 	}
 	return thisStep;
+
 }
 
 void loadIntoRoot(Step* root, std::string path) {
@@ -50,7 +53,6 @@ void loadIntoRoot(Step* root, std::string path) {
 	if (!result) throw std::out_of_range("file not xml or doesn't exist");
 	
 	*root = parseStep(doc.child("step"));
-
 
 }
 
@@ -65,8 +67,6 @@ int main(int argc, char** argv) {
 	loadIntoRoot(&root, "example.xml");
 
 	std::vector<int> objectPath;
-	objectPath.push_back(0);
-	objectPath.push_back(0);
 
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(1280, 720, "Ariadne");
@@ -74,13 +74,20 @@ int main(int argc, char** argv) {
 	SetExitKey(0);
 
 
+	
+	rlImGuiSetup(true);
+	ImGui::GetIO().IniFilename = NULL;
+	
+	bool initializedListWindow = false;
+	bool initializedEditWindow = false;
+	int selectedChild = -1;
 
 	while (!WindowShouldClose()) {
 		BeginDrawing();
 		ClearBackground(BLACK);
 
 		Step* currentStep = &root;
-
+		// traverse path
 		for (int i = 0; i < objectPath.size(); i++) {
 			currentStep = &(currentStep->children.at(objectPath[i]));
 		}
@@ -92,9 +99,146 @@ int main(int argc, char** argv) {
 		}
 
 
-		EndDrawing();
-	}
 
+		rlImGuiBegin();
+
+		
+		if (!initializedListWindow) {
+			ImGui::SetNextWindowPos({ 0,0 });
+			ImGui::SetNextWindowSize({ 400, 700 });
+			initializedListWindow = true;
+		}
+
+		// list window
+		ImGui::Begin("List");
+
+		if (ImGui::ArrowButton("Back", ImGuiDir_Left)) {
+			if (objectPath.size() != 0) {
+				
+				selectedChild = objectPath.at(objectPath.size() - 1);
+				objectPath.pop_back();
+				
+			}
+		}
+		ImGui::SameLine();
+		if (ImGui::ArrowButton("Go", ImGuiDir_Right)) {
+			if (selectedChild != -1) {
+				objectPath.push_back(selectedChild);
+			}
+			selectedChild = -1;
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Add")) {
+			Step newStep;
+			newStep.name = "New step";
+			newStep.description = "";
+			newStep.url = "";
+			newStep.username = "";
+			newStep.password = "";
+			currentStep->children.push_back(newStep);
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Delete")) {
+			if (selectedChild != -1 &&
+				selectedChild <= currentStep->children.size()) {
+				if (currentStep->children[selectedChild].children.size() == 0) {
+					currentStep->children.erase(
+						currentStep->children.begin() + selectedChild
+					);
+					selectedChild = selectedChild < 
+						currentStep->children.size() ?
+						selectedChild : currentStep->children.size() - 1;
+				}
+
+				
+			}
+		}
+		
+		ImGui::Text("Current step: %s", currentStep->name.c_str());
+
+		if (ImGui::BeginListBox("Steps")) {
+			for (int child = 0; child < currentStep->children.size(); child++) {
+				Step& step = currentStep->children[child];
+				bool selected = child == selectedChild;
+				if (ImGui::Selectable(step.name.c_str(), &selected)) {
+					selectedChild = child;
+				}
+			}
+			ImGui::EndListBox();
+		}
+		ImGui::End();
+
+
+		// edit window
+		if (!initializedEditWindow) {
+			ImGui::SetNextWindowPos({ 400,0 });
+			ImGui::SetNextWindowSize({ 400, 700 });
+			initializedEditWindow = true;
+		}
+
+		ImGui::Begin("Edit");
+		
+		Step* examined = currentStep;
+
+		if (selectedChild != -1) {
+			examined = &(examined->children.at(selectedChild));
+		}
+
+		
+		ImGui::InputText("Name", &(examined->name));
+		ImGui::InputTextMultiline("Description", &(examined->description));
+		ImGui::InputText("URL", &(examined->url));
+		ImGui::InputText("Username", &(examined->username));
+		ImGui::InputText("Password", &(examined->password));
+
+		if (ImGui::Button("Go to page")) {
+			
+			std::string url = examined->url;
+			if (examined->username != "" || examined->password != "") {
+				bool secure = false;
+				if (url.starts_with("https://")) {
+					url.erase(0, 8);
+					secure = true;
+				}
+				if (url.starts_with("http://")) {
+					url.erase(0, 7);
+					secure = false;
+				}
+				url = std::format(
+					"{}://{}:{}@{}",
+					secure ? "https" : "http",
+					examined->username,
+					examined->password,
+					url
+				);
+
+			}
+			OpenURL(url.c_str());
+		}
+
+		
+		ImGui::End();
+
+
+		rlImGuiEnd();
+
+		EndDrawing();
+
+		if (IsKeyPressed(KEY_ESCAPE)) {
+			selectedChild = -1;
+		}
+
+		// shortcut for resetting window position
+		if (IsKeyDown(KEY_LEFT_CONTROL)) {
+			if (IsKeyDown(KEY_LEFT_SHIFT)) {
+				if (IsKeyPressed(KEY_R)) {
+					initializedListWindow = false;
+				}
+			}
+		}
+	}
+	rlImGuiShutdown();
+	CloseWindow();
 }
 
 // for /subsystem:windows
