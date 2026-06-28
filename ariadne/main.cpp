@@ -10,6 +10,7 @@
 #include <iostream>
 #include <vector>
 #include <print>
+#include <fstream>
 
 // libraries
 #include <raylib.h>
@@ -54,6 +55,31 @@ void loadIntoRoot(Step* root, std::string path) {
 	
 	*root = parseStep(doc.child("step"));
 
+}
+
+std::string encodeStep(Step step) {
+
+	std::string encoded = std::format(
+		"<step name=\"{}\" description=\"{}\" url=\"{}\" username=\"{}\" password=\"{}\">",
+		step.name,
+		step.description,
+		step.url,
+		step.username,
+		step.password
+	);
+
+	for (Step child : step.children) {
+		encoded += encodeStep(child);
+	}
+	encoded += "</step>";
+
+	return encoded;
+}
+
+void saveFromRoot(Step* root, std::string path) {
+	std::ofstream out(path);
+	out << encodeStep(*root);
+	out.close();
 }
 
 int main(int argc, char** argv) {
@@ -233,10 +259,14 @@ int main(int argc, char** argv) {
 			if (IsKeyDown(KEY_LEFT_SHIFT)) {
 				if (IsKeyPressed(KEY_R)) {
 					initializedListWindow = false;
+					initializedEditWindow = false;
 				}
 			}
 		}
 	}
+
+
+	
 	rlImGuiShutdown();
 	CloseWindow();
 }
