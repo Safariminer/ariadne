@@ -146,7 +146,9 @@ int main(int argc, char** argv) {
 		
 		if (!initializedListWindow) {
 			ImGui::SetNextWindowPos({ 0,0 });
-			ImGui::SetNextWindowSize({ 400, 700 });
+			ImGui::SetNextWindowSize(
+				{(float)GetScreenWidth()/2,(float)GetScreenHeight()}
+			);
 			initializedListWindow = true;
 		}
 
@@ -196,8 +198,8 @@ int main(int argc, char** argv) {
 		}
 		
 		ImGui::Text("Current step: %s", currentStep->name.c_str());
-
-		if (ImGui::BeginListBox("Steps")) {
+		
+		if (ImGui::BeginListBox("Steps", {0, ImGui::GetWindowHeight() - 100})) {
 			for (int child = 0; child < currentStep->children.size(); child++) {
 				Step& step = currentStep->children[child];
 				bool selected = child == selectedChild;
@@ -212,8 +214,10 @@ int main(int argc, char** argv) {
 
 		// edit window
 		if (!initializedEditWindow) {
-			ImGui::SetNextWindowPos({ 400,0 });
-			ImGui::SetNextWindowSize({ 400, 700 });
+			ImGui::SetNextWindowPos({ (float)GetScreenWidth()/2,0});
+			ImGui::SetNextWindowSize(
+				{(float)GetScreenWidth() / 2, (float)GetScreenHeight()}
+			);
 			initializedEditWindow = true;
 		}
 
@@ -227,7 +231,11 @@ int main(int argc, char** argv) {
 
 		
 		ImGui::InputText("Name", &(examined->name));
-		ImGui::InputTextMultiline("Description", &(examined->description));
+		ImGui::InputTextMultiline(
+			"Description", 
+			&(examined->description), 
+			{0, ImGui::GetWindowHeight() - 150}
+		);
 		ImGui::InputText("URL", &(examined->url));
 		ImGui::InputText("Username", &(examined->username));
 		ImGui::InputText("Password", &(examined->password));
