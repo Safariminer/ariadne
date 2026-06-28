@@ -11,6 +11,7 @@
 #include <vector>
 #include <print>
 #include <fstream>
+#include <filesystem>
 
 // libraries
 #include <raylib.h>
@@ -90,7 +91,10 @@ int main(int argc, char** argv) {
 	root.description = "Test description";
 	root.username = "";
 	root.password = "";
-	loadIntoRoot(&root, "example.xml");
+	loadIntoRoot(&root, "default.xml");
+
+	std::string path = "default.xml";
+	std::string previousPath = path;
 
 	std::vector<int> objectPath;
 
@@ -106,6 +110,17 @@ int main(int argc, char** argv) {
 	
 	bool initializedListWindow = false;
 	bool initializedEditWindow = false;
+	
+	bool showOpenDialog = false;
+	bool initializedOpenDialog = false;
+	bool showSaveDialog = false;
+	bool initializedSaveDialog = false;
+	
+	bool badFileError = false;
+
+	bool savingToDefaultError = false;
+	bool savedSuccessfully = false;
+
 	int selectedChild = -1;
 
 	while (!WindowShouldClose()) {
@@ -242,8 +257,101 @@ int main(int argc, char** argv) {
 			OpenURL(url.c_str());
 		}
 
-		
 		ImGui::End();
+
+
+
+		if (IsKeyDown(KEY_LEFT_CONTROL)) {
+			if (IsKeyPressed(KEY_O)) { // open
+				initializedOpenDialog = false;
+				showOpenDialog = true;
+			}
+			if (IsKeyPressed(KEY_S)) { // open
+				initializedSaveDialog = false;
+				showSaveDialog = true;
+			}
+		}
+
+		if (showOpenDialog) {
+			if (!initializedOpenDialog) {
+				ImGui::SetNextWindowPos({ 100, 100 });
+				ImGui::SetNextWindowSize({ 350, 200 });
+				initializedOpenDialog = true;
+				badFileError = false;
+				previousPath = path;
+			}
+			ImGui::Begin("Open file");
+			
+			ImGui::Text("Opening a file will not save the current file.");
+
+			ImGui::InputText("File path", &path);
+
+			if (ImGui::Button("Load")) {
+				try {
+					loadIntoRoot(&root, path);
+					previousPath = path;
+					showOpenDialog = false;
+				}
+				catch (...) {
+					badFileError = true;
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) {
+				path = previousPath;
+				showOpenDialog = false;
+			}
+
+			if (badFileError)
+				ImGui::Text("File not found or not an XML file.");
+			
+
+			ImGui::End();
+		}
+
+		if (showSaveDialog) {
+			if (!initializedSaveDialog) {
+				ImGui::SetNextWindowPos({ 100, 100 });
+				ImGui::SetNextWindowSize({ 350, 200 });
+				initializedSaveDialog = true;
+				previousPath = path;
+				savingToDefaultError = false;
+				savedSuccessfully = false;
+			}
+			ImGui::Begin("Save file");
+
+
+			ImGui::InputText("File path", &path);
+
+			if (ImGui::Button("Save")) {
+				savingToDefaultError = false;
+				savedSuccessfully = false;
+				if (path == "default.xml") {
+					savingToDefaultError = true;
+				}
+				else {
+					saveFromRoot(&root, path);
+					previousPath = path;
+					savedSuccessfully = true;
+				}
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Cancel")) {
+				path = previousPath;
+				showSaveDialog = false;
+			}
+
+			if (savedSuccessfully) {
+				ImGui::Text("Saved successfully");
+			}
+			if (savingToDefaultError) {
+				ImGui::Text("Cannot overwrite default.xml");
+			}
+
+
+			ImGui::End();
+		}
+
 
 
 		rlImGuiEnd();
