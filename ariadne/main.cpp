@@ -30,15 +30,65 @@ struct Step {
 };
 
 
+std::string decodeString(std::string str) {
+	std::string out = "";
+	const size_t size = str.size();
+	for (int i = 0; i < size; i++) {
+		if (str[i] == '\\' && i != size - 1) {
+			if (str[i + 1] == 'n') {
+				out += '\n';
+			}
+			else if (str[i + 1] == 'q') {
+				out += '"';
+			}
+			else {
+				out += str[i + 1];
+			}
+			i++;
+		}
+		else {
+			out += str[i];
+		}
+	}
+	return out;
+}
+
+std::string encodeString(std::string str) {
+	std::string out = "";
+
+	for (const char c : str) {
+		if (c == '\n') {
+			out += "\\n";
+		}
+		else if (c == '"') {
+			out += "\\q";
+		}
+		else if(c == '\\') {
+			out += "\\\\";
+		}
+		else {
+			out += c;
+		}
+	}
+	return out;
+}
+
+
 Step parseStep(pugi::xml_node step) {
 
 	Step thisStep;
 
-	thisStep.name = step.attribute("name").as_string();
-	thisStep.url = step.attribute("url").as_string();
-	thisStep.description = step.attribute("description").as_string();
-	thisStep.username = step.attribute("username").as_string();
-	thisStep.password = step.attribute("password").as_string();
+	thisStep.name = decodeString(step.attribute("name").as_string());
+	thisStep.url = decodeString(step.attribute("url").as_string());
+	thisStep.description = decodeString(
+		step.attribute("description").as_string()
+	);
+	thisStep.username = decodeString(step.attribute("username").as_string());
+	thisStep.password = decodeString(step.attribute("password").as_string());
+
+
+
+
 
 	for (pugi::xml_node s : step.children("step")) {
 		thisStep.children.push_back(parseStep(s));
@@ -62,11 +112,11 @@ std::string encodeStep(Step step) {
 
 	std::string encoded = std::format(
 		"<step name=\"{}\" description=\"{}\" url=\"{}\" username=\"{}\" password=\"{}\">",
-		step.name,
-		step.description,
-		step.url,
-		step.username,
-		step.password
+		encodeString(step.name),
+		encodeString(step.description),
+		encodeString(step.url),
+		encodeString(step.username),
+		encodeString(step.password)
 	);
 
 	for (Step child : step.children) {
